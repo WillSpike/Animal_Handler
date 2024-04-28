@@ -79,10 +79,7 @@ class AnimalManagementWidget(QWidget):
         # Création du QTextEdit pour afficher les informations des animaux
         self.animal_info_text_edit = QTextEdit()
         self.animal_info_text_edit.setReadOnly(True)
-        self.info_layout.addWidget(self.animal_info_text_edit)
-
-        # Ajout du layout des informations au layout principal
-        self.main_layout.addLayout(self.info_layout)
+        self.info_layout.addWidget(self.animal_info_text_edit)  
 
         # Création et ajout du bouton "Enregistrer" au layout
         self.submit_button = QPushButton("Ajouter l'animal")
@@ -165,16 +162,32 @@ class AnimalManagementWidget(QWidget):
         # Définition de la valeur par défaut pour le QComboBox
         self.categories_field.setCurrentIndex(1)  # "Serpent" par défaut
 
-    def display_animals(self) -> None:
+    def update_display(self):
+        # Effacer les widgets existants
+        for i in reversed(range(self.animal_info_widget.layout().count())): 
+            self.animal_info_widget.layout().itemAt(i).widget().setParent(None)
+
         # Récupération des données de la base de données
         data = self.db_manager.get_all_animals()
 
-        # Effacer les informations affichées précédemment
-        self.animal_info_text_edit.clear()
+        # Parcourir tous les animaux et afficher leurs informations
+        for animal in data:
+            animal_info = self.format_animal_info(animal)
+            animal_info_label = QLabel(animal_info)
+            animal_info_label.setWordWrap(True)
+            self.animal_info_widget.layout().addWidget(animal_info_label)
+
+        self.refresh()
+
+    def refresh(self):
+        self.update()
+
+    def display_animals(self) -> None:       
+        # Récupération des données de la base de données
+        data = self.db_manager.get_all_animals()        
 
         # Créer un layout horizontal principal
         main_layout = QHBoxLayout()
-        self.animal_info_text_edit.setLayout(main_layout)
 
         # Créer un layout vertical pour les informations des animaux
         animals_layout = QVBoxLayout()
@@ -183,21 +196,15 @@ class AnimalManagementWidget(QWidget):
         stats_layout = QVBoxLayout()
 
         # Calculer les statistiques
-        total_animals = len(data)
-        total_age = sum(animal[3] for animal in data)
-        average_age = total_age / total_animals if total_animals else 0
-        total_weight = sum(animal[5] for animal in data)
-        average_weight = total_weight / total_animals if total_animals else 0
-        num_snakes = sum(1 for animal in data if animal[1] == "Serpent")
-        num_fish = sum(1 for animal in data if animal[1] == "Poisson")
-
+        total_animals, average_age, average_weight, num_snakes, num_fish = self.calculate_statistics(data)
+    
         # Ajouter les statistiques au layout de droite
         stats_layout.addWidget(QLabel(f"Nombre total d'animaux: {total_animals}"))
-        stats_layout.addWidget(QLabel(f"Moyenne d'âge: {average_age:.2f} ans"))
-        stats_layout.addWidget(QLabel(f"Moyenne de poids: {average_weight:.2f} kg"))
         stats_layout.addWidget(QLabel(f"Nombre de serpents: {num_snakes}"))
         stats_layout.addWidget(QLabel(f"Nombre de poissons: {num_fish}"))
-        stats_layout.addSpacerItem(QSpacerItem(10, 10, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+        stats_layout.addWidget(QLabel(f"Moyenne d'âge: {average_age:.2f} ans"))
+        stats_layout.addWidget(QLabel(f"Moyenne de poids: {average_weight:.2f} kg"))
+        stats_layout.addSpacerItem(QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
 
         # Créer un QScrollArea pour encadrer l'affichage des animaux
         animals_scroll_area = QScrollArea()
@@ -205,9 +212,12 @@ class AnimalManagementWidget(QWidget):
         animals_scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         animals_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
-        # Ajouter le layout des animaux au QScrollArea
-        animals_scroll_area.setWidget(QWidget())
-        animals_scroll_area.widget().setLayout(animals_layout)
+        # Créer un nouveau widget pour afficher les informations des animaux
+        self.animal_info_widget = QWidget()
+        self.animal_info_widget.setLayout(animals_layout)
+
+        # Ajouter le nouveau widget à QScrollArea
+        animals_scroll_area.setWidget(self.animal_info_widget)
 
         # Parcourir tous les animaux et afficher leurs informations
         for animal in data:
@@ -220,7 +230,8 @@ class AnimalManagementWidget(QWidget):
         main_layout.addWidget(animals_scroll_area)
         main_layout.addLayout(stats_layout)
 
-
+        # Définir le layout principal sur QTextEdit
+        self.animal_info_text_edit.setLayout(main_layout)
 
     def format_animal_info(self, animal: tuple) -> str:        
         animal_info = f"<b>Catégorie:</b> {animal[1]}<br>"
@@ -251,7 +262,6 @@ class AnimalManagementWidget(QWidget):
 
         return animal_info
         
-
     def create_snake_widgets(self) -> list:
         snake_widgets = []
         self.snake_species_field = QLineEdit()
@@ -390,9 +400,9 @@ class AnimalManagementWidget(QWidget):
                 # Ajouter le poisson dans la table Fish
                 self.db_manager.add_fish(animal_id, fish_species, fish_phase, size, freshwater, brackish_water, sea_water, feeding_type, meal_dates)
 
-            # Réinitialisation du formulaire
-            self.reset_form()
-
+            self.reset_form() # Remise à zéro des champs du formulaire
+            self.update_display() # Mise à jour de l'affichage display_animals                        
+                         
         except ValueError as e:
             # Affichage d'un message d'erreur à l'utilisateur en cas de problème de saisie
             QMessageBox.critical(self, "Erreur", f"Une erreur s'est produite lors de la saisie des données : {str(e)}")
@@ -427,6 +437,18 @@ class AnimalManagementWidget(QWidget):
             self.sea_water_field.setChecked(False)
             self.feeding_type_field.clear()
             self.meal_dates_field.clear()
+
+    def calculate_statistics(self, data):
+        # Calculate statistics here
+        total_animals = len(data)
+        total_age = sum(animal[3] for animal in data)
+        average_age = total_age / total_animals if total_animals else 0
+        total_weight = sum(animal[5] for animal in data)
+        average_weight = total_weight / total_animals if total_animals else 0
+        num_snakes = sum(1 for animal in data if animal[1] == "Serpent")
+        num_fish = sum(1 for animal in data if animal[1] == "Poisson")
+
+        return total_animals, average_age, average_weight, num_snakes, num_fish
 
 class HabitatsTab(QWidget):
     def __init__(self, db_manager: DatabaseManagement):
