@@ -89,11 +89,16 @@ class DatabaseManagement:
         self.conn.commit()
 
     def add_animal(self, categories, nickname, age, sex, weight, state, health, notes, habitat_id):
-        cursor = self.conn.cursor()
-        cursor.execute("INSERT INTO Animals (categories, nickname, age, sex, weight, state, health, notes, habitat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-                    (categories, nickname, age, sex, weight, state, health, notes, habitat_id))
-        self.conn.commit()
-        return cursor.lastrowid
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute("INSERT INTO Animals (categories, nickname, age, sex, weight, state, health, notes, habitat_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+                        (categories, nickname, age, sex, weight, state, health, notes, habitat_id))
+            self.conn.commit()
+            return cursor.lastrowid
+        except sqlite3.Error as e:
+            self.conn.rollback()
+            raise Exception(f"Erreur lors de l'ajout de l'animal : {str(e)}")
+
 
     def add_fish(self, animal_id, species, phase, size, freshwater, brackish_water, sea_water, feeding_type, meal_dates):
         cursor = self.conn.cursor()
@@ -111,24 +116,30 @@ class DatabaseManagement:
 
     def get_all_animals(self) -> list:
         cursor = self.conn.cursor()
-        
-        # Récupérez toutes les informations de la table Animals
         cursor.execute("SELECT * FROM Animals")
         animals = cursor.fetchall()
-        
-        # Pour chaque animal, vérifiez s'il s'agit d'un serpent ou d'un poisson et ajoutez les informations supplémentaires
+
         for i, animal in enumerate(animals):
-            if animal[1] == "Serpent":
-                cursor.execute("SELECT * FROM Snakes WHERE animal_id = ?", (animal[0],))
+            animal_id = animal[0]
+            categories = animal[1]
+
+            if categories == "Serpent":
+                cursor.execute("SELECT * FROM Snakes WHERE animal_id = ?", (animal_id,))
                 snake_info = cursor.fetchone()
-                animals[i] += snake_info
-            elif animal[1] == "Poisson":
-                cursor.execute("SELECT * FROM Fish WHERE animal_id = ?", (animal[0],))
+                if snake_info:
+                    animals[i] = animal + snake_info
+            elif categories == "Poisson":
+                cursor.execute("SELECT * FROM Fish WHERE animal_id = ?", (animal_id,))
                 fish_info = cursor.fetchone()
-                animals[i] += fish_info
-        
+                if fish_info and len(fish_info) == 10:  # Vérifier que le tuple fish_info a la bonne longueur
+                    animals[i] = animal + fish_info
+                else:
+                    # Gérer le cas où les informations des poissons sont manquantes
+                    animals[i] = animal + (None,) * 10  # Ajouter des valeurs nulles pour les champs manquants
+
         cursor.close()
         return animals
+
 
     def get_all_habitats(self) -> list:
         cursor = self.conn.cursor()

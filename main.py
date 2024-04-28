@@ -9,13 +9,14 @@ def main():
     db_manager = DatabaseManagement('my_database.db')
     db_manager.create_database()
 
-    # Créer et exécuter l'interface utilisateur
-    app = QApplication(sys.argv)
-    gui = GUI(db_manager, app)
-    gui.run()
-
-    # Fermer les bases de données
-    db_manager.close_database()
+    try:
+        # Créer et exécuter l'interface utilisateur
+        app = QApplication(sys.argv)
+        gui = GUI(db_manager, app)
+        gui.run()
+    finally:
+        # Fermer les bases de données
+        db_manager.close_database()
 
 if __name__ == "__main__":
     main()
