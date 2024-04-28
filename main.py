@@ -2,7 +2,7 @@
 import sys
 from database_management import DatabaseManagement
 from gui import GUI
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication 
 
 def main():
     # Créer une instance de DatabaseManagement et créer les bases de données

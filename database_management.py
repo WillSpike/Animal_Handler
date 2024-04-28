@@ -109,8 +109,26 @@ class DatabaseManagement:
         self.conn.commit()
         return cursor.lastrowid
 
-
-
+    def get_all_animals(self) -> list:
+        cursor = self.conn.cursor()
+        
+        # Récupérez toutes les informations de la table Animals
+        cursor.execute("SELECT * FROM Animals")
+        animals = cursor.fetchall()
+        
+        # Pour chaque animal, vérifiez s'il s'agit d'un serpent ou d'un poisson et ajoutez les informations supplémentaires
+        for i, animal in enumerate(animals):
+            if animal[1] == "Serpent":
+                cursor.execute("SELECT * FROM Snakes WHERE animal_id = ?", (animal[0],))
+                snake_info = cursor.fetchone()
+                animals[i] += snake_info
+            elif animal[1] == "Poisson":
+                cursor.execute("SELECT * FROM Fish WHERE animal_id = ?", (animal[0],))
+                fish_info = cursor.fetchone()
+                animals[i] += fish_info
+        
+        cursor.close()
+        return animals
 
     def get_all_habitats(self) -> list:
         cursor = self.conn.cursor()
@@ -120,7 +138,6 @@ class DatabaseManagement:
         aquariums = cursor.fetchall()
         cursor.close()
         return terrariums + aquariums
-
 
     def create_stock_db(self) -> None:
         cursor = self.conn.cursor()

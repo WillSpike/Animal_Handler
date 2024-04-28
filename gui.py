@@ -1,6 +1,9 @@
 # gui.py
-from PyQt6.QtWidgets import QMainWindow, QTabWidget, QWidget,QButtonGroup,QRadioButton, QVBoxLayout,QCheckBox ,QApplication, QLineEdit, QPushButton,  QComboBox, QLabel, QSpacerItem,QSizePolicy 
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QMainWindow, QTabWidget, QWidget,QButtonGroup,QRadioButton, QVBoxLayout, QHBoxLayout, QCheckBox ,QApplication, QLineEdit, QPushButton, QComboBox, QLabel, QSpacerItem,QSizePolicy
 from database_management import DatabaseManagement
+from PyQt6.QtWidgets import QTextEdit
+
 
 
 class GUI(QMainWindow):
@@ -51,96 +54,157 @@ class AnimalManagementWidget(QWidget):
         super().__init__()
         self.db_manager = db_manager
 
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-      
+        # Création du layout principal en horizontal
+        self.main_layout = QHBoxLayout()
+        self.setLayout(self.main_layout)
+
+        # Création du layout pour le formulaire à gauche
+        self.form_layout = QVBoxLayout()
+        self.main_layout.addLayout(self.form_layout)
+
+        # Création du layout pour l'affichage des informations à droite
+        self.info_layout = QVBoxLayout()
+        self.main_layout.addLayout(self.info_layout)
+
+        # Création et ajout du bouton "Afficher les animaux" au layout
+        self.display_button = QPushButton("Afficher les animaux")
+        self.display_button.setFixedWidth(150)
+        self.form_layout.addWidget(self.display_button)
+        self.display_button.clicked.connect(self.display_animals)
+
+        # Création du QTextEdit pour afficher les informations des animaux
+        self.animal_info_text_edit = QTextEdit()
+        self.animal_info_text_edit.setReadOnly(True)
+        self.info_layout.addWidget(self.animal_info_text_edit)
+
+        # Ajout du layout des informations au layout principal
+        self.main_layout.addLayout(self.info_layout)
+
+        # Création et ajout du bouton "Enregistrer" au layout
+        self.submit_button = QPushButton("Ajouter l'animal")
+        self.submit_button.setFixedWidth(100)
+        self.form_layout.addWidget(self.submit_button)
+        self.submit_button.clicked.connect(self.submit)
+
+        # Création du champ de sélection de la catégorie
         self.categories_field = QComboBox()
         self.categories_field.addItem("Serpent")
         self.categories_field.addItem("Poisson")
-        layout.addWidget(QLabel("Catégorie"))
-        layout.addWidget(self.categories_field)
+        self.form_layout.addWidget(QLabel("Catégorie"))
+        self.form_layout.addWidget(self.categories_field)
         self.categories_field.setFixedWidth(100)
 
+        # Création du champ de saisie du surnom
         self.nickname_field = QLineEdit()
-        layout.addWidget(QLabel("Surnom"))
-        layout.addWidget(self.nickname_field) 
-        self.nickname_field.setFixedWidth(100)             
+        self.form_layout.addWidget(QLabel("Surnom"))
+        self.form_layout.addWidget(self.nickname_field)
+        self.nickname_field.setFixedWidth(100)
 
-        # Création d'un QComboBox pour l'âge
+        # Création du champ de sélection de l'âge
         self.age_combobox = QComboBox()
         self.age_combobox.setFixedWidth(40)
-        
         for age in range(101):  # de 0 à 100 ans
-            self.age_combobox.addItem(str(age))    
+            self.age_combobox.addItem(str(age))
+        self.form_layout.addWidget(QLabel("Age"))
+        self.form_layout.addWidget(self.age_combobox)
 
-        layout.addWidget(QLabel("Age"))
-        layout.addWidget(self.age_combobox)
-
-        # Création d'un groupe de boutons radio
-        self.gender_group = QButtonGroup()        
-
-        # Création des boutons radio
+        # Création des boutons radio pour le sexe
+        self.gender_group = QButtonGroup()
         self.male_radio = QRadioButton("Male")
         self.female_radio = QRadioButton("Femelle")
         self.undefined_radio = QRadioButton("Indéfini")
-
-        # Ajout des boutons radio au groupe
         self.gender_group.addButton(self.male_radio)
         self.gender_group.addButton(self.female_radio)
         self.gender_group.addButton(self.undefined_radio)
+        self.form_layout.addWidget(QLabel("Sexe"))
+        self.form_layout.addWidget(self.male_radio)
+        self.form_layout.addWidget(self.female_radio)
+        self.form_layout.addWidget(self.undefined_radio)
 
-        # Ajout des boutons radio à un layout
-        layout.addWidget(QLabel("Sexe"))
-        layout.addWidget(self.male_radio)
-        layout.addWidget(self.female_radio)
-        layout.addWidget(self.undefined_radio)
-
+        # Création des autres champs du formulaire
         self.weight_field = QLineEdit()
-        layout.addWidget(QLabel("Poids"))
-        layout.addWidget(self.weight_field)
+        self.form_layout.addWidget(QLabel("Poids"))
+        self.form_layout.addWidget(self.weight_field)
         self.weight_field.setFixedWidth(100)
 
         self.state_field = QLineEdit()
-        layout.addWidget(QLabel("Stade"))
-        layout.addWidget(self.state_field)
+        self.form_layout.addWidget(QLabel("Stade"))
+        self.form_layout.addWidget(self.state_field)
         self.state_field.setFixedWidth(100)
 
         self.health_field = QLineEdit()
-        layout.addWidget(QLabel("Santé"))
-        layout.addWidget(self.health_field)
+        self.form_layout.addWidget(QLabel("Santé"))
+        self.form_layout.addWidget(self.health_field)
         self.health_field.setFixedWidth(100)
 
         self.notes_field = QLineEdit()
-        layout.addWidget(QLabel("Notes"))
-        layout.addWidget(self.notes_field)
+        self.form_layout.addWidget(QLabel("Notes"))
+        self.form_layout.addWidget(self.notes_field)
         self.notes_field.setFixedWidth(100)
 
         self.habitat_id_field = QLineEdit()
         self.habitat_id_field.setEnabled(False)  # Griser le champ pour le rendre non modifiable
-        layout.addWidget(QLabel("Habitat ID (généré automatiquement)"))
-        layout.addWidget(self.habitat_id_field)
+        self.form_layout.addWidget(QLabel("Habitat ID (généré automatiquement)"))
+        self.form_layout.addWidget(self.habitat_id_field)
         self.habitat_id_field.setFixedWidth(100)
 
-
-
-        # Créez les widgets pour les serpents et les poissons       
+        # Création des widgets pour les serpents et les poissons
         self.snake_widgets = self.create_snake_widgets()
         self.fish_widgets = self.create_fish_widgets()
 
-        # Stockez les widgets actuellement affichés ici.
+        # Stockage des widgets actuellement affichés
         self.current_widgets = []
 
-        # Connectez le signal currentTextChanged au slot update_form.
+        # Connexion du signal currentTextChanged au slot update_form
         self.categories_field.currentTextChanged.connect(self.update_form)
 
-        # Définissez une valeur par défaut pour le QComboBox.
-        self.categories_field.setCurrentIndex(1)  # Sélectionnez "Serpent" par défaut.
+        # Définition de la valeur par défaut pour le QComboBox
+        self.categories_field.setCurrentIndex(1)  # Sélectionnez "Serpent" par défaut
 
-        # Création et ajout du bouton "Enregistrer" au layout
-        submit_button = QPushButton("Enregistrer")
-        submit_button.setFixedWidth(100)
-        layout.addWidget(submit_button)
-        submit_button.clicked.connect(self.submit)
+    def display_animals(self):
+        # Récupération des données de la base de données
+        data = self.db_manager.get_all_animals()
+
+        # Effacer les informations affichées précédemment
+        self.animal_info_text_edit.clear()
+
+        # Parcourir tous les animaux et afficher leurs informations
+        for animal in data:
+            animal_info = f"ID: {animal[0]}\n"
+            animal_info += f"Catégorie: {animal[1]}\n"
+            animal_info += f"Nom: {animal[2]}\n"
+            animal_info += f"Age: {animal[3]}\n"
+            animal_info += f"Sexe: {animal[4]}\n"
+            animal_info += f"Poids: {animal[5]}\n"
+            animal_info += f"Stade: {animal[6]}\n"
+            animal_info += f"Santé: {animal[7]}\n"
+            animal_info += f"Notes: {animal[8]}\n"
+            animal_info += f"ID Habitat: {animal[9]}\n"
+
+            # Afficher les informations spécifiques aux serpents
+            if animal[1] == "Serpent":
+                animal_info += f"ID Serpent: {animal[10]}\n"
+                animal_info += f"ID Animal: {animal[11]}\n" # Ajouter l'ID de l'animal dans l'information
+                animal_info += f"Espèce: {animal[12]}\n"
+                animal_info += f"Phase: {animal[13]}\n"
+                animal_info += f"Longueur: {animal[14]}\n"
+                animal_info += f"Venimeux: {animal[15]}\n"
+                animal_info += f"Dates de mue: {animal[16]}\n"
+                animal_info += f"Date du dernier repas: {animal[17]}\n"
+            # Afficher les informations spécifiques aux poissons
+            elif animal[1] == "Poisson":
+                animal_info += f"ID Poisson: {animal[10]}\n"
+                animal_info += f"ID Animal: {animal[11]}\n"
+                animal_info += f"Espèce: {animal[12]}\n"
+                animal_info += f"Phase: {animal[13]}\n"
+                animal_info += f"Taille: {animal[14]}\n"
+                animal_info += f"Eau douce: {animal[15]}\n"
+                animal_info += f"Eau saumâtre: {animal[16]}\n"
+                animal_info += f"Eau de mer: {animal[17]}\n"
+                animal_info += f"Type d'alimentation: {animal[18]}\n"
+                animal_info += f"Dates des repas: {animal[19]}\n"
+
+            self.animal_info_text_edit.append(animal_info + "\n\n")
 
 
     def create_snake_widgets(self) -> list:
@@ -219,10 +283,10 @@ class AnimalManagementWidget(QWidget):
 
         return fish_widgets
        
-    def update_form(self, category)->None:
+    def update_form(self, category):
         # Supprimez les widgets spécifiques à la catégorie précédente.
         for widget in self.current_widgets:
-            self.layout().removeWidget(widget)
+            self.form_layout.removeWidget(widget)
             widget.setParent(None)
 
         # Réinitialisez la liste des widgets actuellement affichés.
@@ -231,11 +295,11 @@ class AnimalManagementWidget(QWidget):
         # Ajoutez les widgets appropriés au layout.
         if category == "Serpent":
             for widget in self.snake_widgets:
-                self.layout().addWidget(widget)
+                self.form_layout.addWidget(widget)
                 self.current_widgets.append(widget)
         elif category == "Poisson":
             for widget in self.fish_widgets:
-                self.layout().addWidget(widget)
+                self.form_layout.addWidget(widget)
                 self.current_widgets.append(widget)
 
     def submit(self):
