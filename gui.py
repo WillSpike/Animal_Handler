@@ -162,50 +162,30 @@ class AnimalManagementWidget(QWidget):
         # Définition de la valeur par défaut pour le QComboBox
         self.categories_field.setCurrentIndex(1)  # "Serpent" par défaut
 
-    def update_display(self):
-        # Effacer les widgets existants
-        for i in reversed(range(self.animal_info_widget.layout().count())): 
-            self.animal_info_widget.layout().itemAt(i).widget().setParent(None)
-
-        # Récupération des données de la base de données
-        data = self.db_manager.get_all_animals()
-
-        # Parcourir tous les animaux et afficher leurs informations
-        for animal in data:
-            animal_info = self.format_animal_info(animal)
-            animal_info_label = QLabel(animal_info)
-            animal_info_label.setWordWrap(True)
-            self.animal_info_widget.layout().addWidget(animal_info_label)
-
-        self.refresh()
-
-    def refresh(self):
-        self.update()
-
     def display_animals(self) -> None:       
         # Récupération des données de la base de données
         data = self.db_manager.get_all_animals()        
 
-        # Créer un layout horizontal principal
-        main_layout = QHBoxLayout()
-
-        # Créer un layout vertical pour les informations des animaux
-        animals_layout = QVBoxLayout()
-
-        # Créer un layout vertical pour les statistiques
+        # Créer layout principal , statistiques et layout des animaux
+        main_layout = QHBoxLayout()        
+        animals_layout = QVBoxLayout()        
         stats_layout = QVBoxLayout()
 
         # Calculer les statistiques
         total_animals, average_age, average_weight, num_snakes, num_fish = self.calculate_statistics(data)
     
-        # Ajouter les statistiques au layout de droite
-        stats_layout.addWidget(QLabel(f"Nombre total d'animaux: {total_animals}"))
-        stats_layout.addWidget(QLabel(f"Nombre de serpents: {num_snakes}"))
-        stats_layout.addWidget(QLabel(f"Nombre de poissons: {num_fish}"))
-        stats_layout.addWidget(QLabel(f"Moyenne d'âge: {average_age:.2f} ans"))
-        stats_layout.addWidget(QLabel(f"Moyenne de poids: {average_weight:.2f} kg"))
-        stats_layout.addSpacerItem(QSpacerItem(5, 5, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+        self.total_animals_label = QLabel(f"Nombre total d'animaux: {total_animals}")
+        self.num_snakes_label = QLabel(f"Nombre de serpents: {num_snakes}")
+        self.num_fish_label = QLabel(f"Nombre de poissons: {num_fish}")
+        self.average_age_label = QLabel(f"Moyenne d'âge: {average_age:.2f} ans")
+        self.average_weight_label = QLabel(f"Moyenne de poids: {average_weight:.2f} kg")
 
+        stats_layout.addWidget(self.total_animals_label)
+        stats_layout.addWidget(self.num_snakes_label)
+        stats_layout.addWidget(self.num_fish_label)
+        stats_layout.addWidget(self.average_age_label)
+        stats_layout.addWidget(self.average_weight_label)
+        
         # Créer un QScrollArea pour encadrer l'affichage des animaux
         animals_scroll_area = QScrollArea()
         animals_scroll_area.setWidgetResizable(True)
@@ -232,6 +212,34 @@ class AnimalManagementWidget(QWidget):
 
         # Définir le layout principal sur QTextEdit
         self.animal_info_text_edit.setLayout(main_layout)
+
+    def update_display(self):
+        # Effacer les widgets existants
+        for i in reversed(range(self.animal_info_widget.layout().count())): 
+            self.animal_info_widget.layout().itemAt(i).widget().setParent(None)
+
+        # Récupération des données de la base de données
+        data = self.db_manager.get_all_animals()
+
+        # Parcourir tous les animaux et afficher leurs informations
+        for animal in data:
+            animal_info = self.format_animal_info(animal)
+            animal_info_label = QLabel(animal_info)
+            animal_info_label.setWordWrap(True)
+            self.animal_info_widget.layout().addWidget(animal_info_label)
+
+        total_animals, average_age, average_weight, num_snakes, num_fish = self.calculate_statistics(data)
+
+        self.total_animals_label.setText(f"Nombre total d'animaux: {total_animals}")
+        self.num_snakes_label.setText(f"Nombre de serpents: {num_snakes}")
+        self.num_fish_label.setText(f"Nombre de poissons: {num_fish}")
+        self.average_age_label.setText(f"Moyenne d'âge: {average_age:.2f} ans")
+        self.average_weight_label.setText(f"Moyenne de poids: {average_weight:.2f} kg")
+
+        self.refresh()
+
+    def refresh(self):
+        self.update()
 
     def format_animal_info(self, animal: tuple) -> str:        
         animal_info = f"<b>Catégorie:</b> {animal[1]}<br>"
