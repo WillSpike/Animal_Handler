@@ -2,7 +2,7 @@
 from typing import Tuple
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QMainWindow, QTabWidget, QWidget,QButtonGroup,QRadioButton, QVBoxLayout, QHBoxLayout, QCheckBox ,QApplication, QLineEdit, QPushButton, QComboBox, QLabel, QDateEdit
-from PyQt6.QtWidgets import QTextEdit ,QDoubleSpinBox ,QMessageBox ,QScrollArea ,QSpacerItem ,QSizePolicy ,QGridLayout
+from PyQt6.QtWidgets import QTextEdit ,QDoubleSpinBox ,QMessageBox ,QScrollArea ,QSpacerItem ,QSizePolicy ,QGridLayout ,QTableWidget ,QTableWidgetItem
 from database_management import DatabaseManagement
 from datetime import datetime
 
@@ -229,26 +229,31 @@ class AnimalManagementWidget(QWidget):
         self.animal_info_text_edit.setLayout(main_layout)
 
     def display_statistics(self, total_animals, average_age, average_weight, num_snakes, num_fish):
-        # Créer un layout vertical pour les statistiques
-        stats_layout = QVBoxLayout()
+        # Supprimer l'ancien widget stats_table s'il existe
+        if hasattr(self, 'stats_table'):
+            self.main_layout.removeWidget(self.stats_table)
+            self.stats_table.deleteLater()
+            self.stats_table = None
 
-        # Mettre à jour les labels des statistiques
-        self.total_animals_label.setText(f"Nombre total d'animaux: {total_animals}")
-        self.num_snakes_label.setText(f"Nombre de serpents: {num_snakes}")
-        self.num_fish_label.setText(f"Nombre de poissons: {num_fish}")
-        self.average_age_label.setText(f"Moyenne d'âge: {average_age:.2f} ans")
-        self.average_weight_label.setText(f"Moyenne de poids: {average_weight:.2f} kg")
+        # Créer un nouveau widget stats_table
+        self.stats_table = QTableWidget()
+        self.stats_table.setRowCount(5)
+        self.stats_table.setColumnCount(2)
 
-        # Ajouter les statistiques au layout
-        stats_layout.addWidget(self.total_animals_label)
-        stats_layout.addWidget(self.num_snakes_label)
-        stats_layout.addWidget(self.num_fish_label)
-        stats_layout.addWidget(self.average_age_label)
-        stats_layout.addWidget(self.average_weight_label)
-        stats_layout.addSpacerItem(QSpacerItem(0, 0, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum))
+        # Définir les en-têtes
+        self.stats_table.setHorizontalHeaderLabels(["Statistique", "Valeur"])
+        self.stats_table.setVerticalHeaderLabels(["Nombre total d'animaux", "Nombre de serpents", "Nombre de poissons", "Moyenne d'âge", "Moyenne de poids"])
 
-        # Ajouter le layout des statistiques au layout principal
-        self.main_layout.addLayout(stats_layout)
+        # Remplir le tableau avec les statistiques
+        self.stats_table.setItem(0, 1, QTableWidgetItem(str(total_animals)))
+        self.stats_table.setItem(1, 1, QTableWidgetItem(str(num_snakes)))
+        self.stats_table.setItem(2, 1, QTableWidgetItem(str(num_fish)))
+        self.stats_table.setItem(3, 1, QTableWidgetItem(f"{average_age:.2f} ans"))
+        self.stats_table.setItem(4, 1, QTableWidgetItem(f"{average_weight:.2f} kg"))
+
+        # Ajouter le nouveau widget stats_table à main_layout
+        self.main_layout.addWidget(self.stats_table)
+
 
     def calculate_statistics(self, data: list) -> Tuple[int, float, float, int, int]:
         total_animals = len(data)
