@@ -43,7 +43,7 @@ class DatabaseManagement:
                 phase TEXT,
                 length REAL,
                 venomous BOOLEAN,
-                shedding_dates TEXT,
+                shedding_dates DATE,
                 meal_date DATE,
                 FOREIGN KEY(animal_id) REFERENCES Animals(id)
             )
@@ -59,7 +59,7 @@ class DatabaseManagement:
                 brackish_water BOOLEAN,
                 sea_water BOOLEAN,
                 feeding_type TEXT,
-                meal_dates TEXT,
+                meal_dates DATE,
                 FOREIGN KEY(animal_id) REFERENCES Animals(id)
             )
         """)
@@ -98,7 +98,6 @@ class DatabaseManagement:
         except sqlite3.Error as e:
             self.conn.rollback()
             raise Exception(f"Erreur lors de l'ajout de l'animal : {str(e)}")
-
 
     def add_fish(self, animal_id, species, phase, size, freshwater, brackish_water, sea_water, feeding_type, meal_dates):
         cursor = self.conn.cursor()

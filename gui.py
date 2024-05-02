@@ -1,8 +1,9 @@
 # gui.py
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QMainWindow, QTabWidget, QWidget,QButtonGroup,QRadioButton, QVBoxLayout, QHBoxLayout, QCheckBox ,QApplication, QLineEdit, QPushButton, QComboBox, QLabel, QSpacerItem,QSizePolicy
+from PyQt6.QtWidgets import QMainWindow, QTabWidget, QWidget,QButtonGroup,QRadioButton, QVBoxLayout, QHBoxLayout, QCheckBox ,QApplication, QLineEdit, QPushButton, QComboBox, QLabel, QDateEdit
 from database_management import DatabaseManagement
-from PyQt6.QtWidgets import QTextEdit ,QDoubleSpinBox, QDateEdit, QMessageBox, QScrollArea
+from PyQt6.QtWidgets import QTextEdit ,QDoubleSpinBox ,QMessageBox ,QScrollArea
+from datetime import datetime
 
 class GUI(QMainWindow):
     def __init__(self, db_manager: DatabaseManagement, app: QApplication):
@@ -162,7 +163,7 @@ class AnimalManagementWidget(QWidget):
         # Définition de la valeur par défaut pour le QComboBox
         self.categories_field.setCurrentIndex(1)  # "Serpent" par défaut
 
-    def display_animals(self) -> None:       
+    def display_animals(self) -> None: 
         # Récupération des données de la base de données
         data = self.db_manager.get_all_animals()        
 
@@ -185,7 +186,7 @@ class AnimalManagementWidget(QWidget):
         stats_layout.addWidget(self.num_fish_label)
         stats_layout.addWidget(self.average_age_label)
         stats_layout.addWidget(self.average_weight_label)
-        
+
         # Créer un QScrollArea pour encadrer l'affichage des animaux
         animals_scroll_area = QScrollArea()
         animals_scroll_area.setWidgetResizable(True)
@@ -341,7 +342,7 @@ class AnimalManagementWidget(QWidget):
         fish_widgets.append(QLabel("Type de nourriture"))
         fish_widgets.append(self.feeding_type_field)
 
-        self.meal_dates_field = QLineEdit()
+        self.meal_dates_field = QDateEdit()
         self.meal_dates_field.setFixedWidth(100)
         fish_widgets.append(QLabel("Dates des repas"))
         fish_widgets.append(self.meal_dates_field)
@@ -396,6 +397,7 @@ class AnimalManagementWidget(QWidget):
                 shedding_dates = self.shedding_dates_field.text()
                 meal_date = self.meal_date_field.text()
                 self.db_manager.add_snake(animal_id, snake_species, snake_phase, length, venomous, shedding_dates, meal_date)
+
             elif categories == "Poisson":
                 fish_species = self.species_field.text()
                 fish_phase = self.phase_field.text()
@@ -404,12 +406,13 @@ class AnimalManagementWidget(QWidget):
                 brackish_water = self.brackish_water_field.isChecked()
                 sea_water = self.sea_water_field.isChecked()
                 feeding_type = self.feeding_type_field.text()
-                meal_dates = self.meal_dates_field.text()
+                meal_dates = self.meal_dates_field.text() 
                 # Ajouter le poisson dans la table Fish
                 self.db_manager.add_fish(animal_id, fish_species, fish_phase, size, freshwater, brackish_water, sea_water, feeding_type, meal_dates)
 
+            QMessageBox.information(self, "Succès", "L'animal a été enregistré avec succès.")                   
             self.reset_form() # Remise à zéro des champs du formulaire
-            self.update_display() # Mise à jour de l'affichage display_animals                        
+            self.update_display() # Mise à jour de l'affichage display_animals     
                          
         except ValueError as e:
             # Affichage d'un message d'erreur à l'utilisateur en cas de problème de saisie
@@ -434,8 +437,8 @@ class AnimalManagementWidget(QWidget):
             self.snake_phase_field.clear()
             self.length_field.clear()
             self.venomous_field.setChecked(False)
-            self.shedding_dates_field.clear()
-            self.meal_date_field.clear()
+            self.shedding_dates_field.setDate(datetime.now().date())
+            self.meal_date_field.setDate(datetime.now().date())
         elif self.categories_field.currentText() == "Poisson":
             self.species_field.clear()
             self.phase_field.clear()
@@ -444,7 +447,7 @@ class AnimalManagementWidget(QWidget):
             self.brackish_water_field.setChecked(False)
             self.sea_water_field.setChecked(False)
             self.feeding_type_field.clear()
-            self.meal_dates_field.clear()
+            self.meal_dates_field.setDate(datetime.now().date())
 
     def calculate_statistics(self, data):
         # Calculate statistics here
