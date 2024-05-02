@@ -238,22 +238,23 @@ class AnimalManagementWidget(QWidget):
         # Créer un nouveau widget stats_table
         self.stats_table = QTableWidget()
         self.stats_table.setRowCount(5)
-        self.stats_table.setColumnCount(2)
+        self.stats_table.setColumnCount(1)
 
-        # Définir les en-têtes
-        self.stats_table.setHorizontalHeaderLabels(["Statistique", "Valeur"])
+        # Définir les en-têtes verticaux
         self.stats_table.setVerticalHeaderLabels(["Nombre total d'animaux", "Nombre de serpents", "Nombre de poissons", "Moyenne d'âge", "Moyenne de poids"])
 
         # Remplir le tableau avec les statistiques
-        self.stats_table.setItem(0, 1, QTableWidgetItem(str(total_animals)))
-        self.stats_table.setItem(1, 1, QTableWidgetItem(str(num_snakes)))
-        self.stats_table.setItem(2, 1, QTableWidgetItem(str(num_fish)))
-        self.stats_table.setItem(3, 1, QTableWidgetItem(f"{average_age:.2f} ans"))
-        self.stats_table.setItem(4, 1, QTableWidgetItem(f"{average_weight:.2f} kg"))
+        self.stats_table.setItem(0, 0, QTableWidgetItem(str(total_animals)))
+        self.stats_table.setItem(1, 0, QTableWidgetItem(str(num_snakes)))
+        self.stats_table.setItem(2, 0, QTableWidgetItem(str(num_fish)))
+        self.stats_table.setItem(3, 0, QTableWidgetItem(f"{average_age:.2f} ans"))
+        self.stats_table.setItem(4, 0, QTableWidgetItem(f"{average_weight:.2f} kg"))
+
+        # Cacher l'en-tête horizontal
+        self.stats_table.horizontalHeader().setVisible(False)
 
         # Ajouter le nouveau widget stats_table à main_layout
         self.main_layout.addWidget(self.stats_table)
-
 
     def calculate_statistics(self, data: list) -> Tuple[int, float, float, int, int]:
         total_animals = len(data)
